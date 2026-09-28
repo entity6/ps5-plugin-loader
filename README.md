@@ -1,70 +1,103 @@
-# ploader
+# ploader 🎮
 
-An experimental and unstable PRX injector for PS5.
+A PRX/SPRX injector for PS5.
 
-**⚠️ Status:** Work in progress. Highly unstable.
+⚠️ **Status:** Work in progress. May be unstable.
 
-## Compatibility
+---
 
-* **Firmware:** Tested on **12.20 ONLY**. Other firmware versions are untested.
-* **Games:** Tested on **PS4 games running in backward compatibility mode on PS5**.
-* **Native PS5 games:** Untested.
+## 📋 Compatibility
 
-## Usage
+| | Status |
+|---|---|
+| **Firmware 11.60** | ✅ Tested |
+| **Firmware 12.20** | ✅ Tested |
+| **Other firmware** | ❓ Untested |
+| **PS4 games (PS4EMU)** | ✅ Tested |
+| **Native PS5 games** | ❓ Untested |
 
-1. Place your `.prx` or `.sprx` files on the console. Both formats are supported.
-2. Configure `/data/plugins/ploader.ini` correctly.
-3. **Boot the PS4 version of the game first.**
-4. **Wait until the game has completely finished loading and you are fully inside the game.**
-5. **Do not send the payload while the game is on a loading screen or while the game is still loading.**
-6. Send `payload.elf`.
+---
 
-> **Important:** Always wait until the game is fully loaded and interactive before sending the payload.
+## 🚀 Usage
 
-You must re-send the payload every time you restart the game.
+1. Place your `.prx` or `.sprx` files on the console (e.g. `/data/plugins/`)
+2. Configure `/data/plugins/ploader.ini` (see below)
+3. Send `ploader.elf` - ploader will wait for the game to appear and inject automatically ✨
+4. Boot the game
 
-## Configuration
+> You must re-send the payload every time you restart the game.
 
-`/data/plugins/ploader.ini`
+---
+
+## ⚙️ Configuration
+
+Edit `/data/plugins/ploader.ini`:
 
 ```ini
-[CUSA12345] ; Title ID
-/data/plugins/my_plugin.prx = true
+[CUSA01234]
+/data/plugins/my_plugin00.prx = 0  ; Disabled - won't inject.
+/data/plugins/my_plugin01.prx = 1  ; Early - kicks in as soon as the process starts loading.
+/data/plugins/my_plugin02.prx = 2  ; Late  - waits for the game to be fully loaded.
+
+[CUSA56789]
+my_plugin.prx   = 1  ; Short name - resolved to /data/plugins/my_plugin.prx automatically.
+my_other.sprx   = 2
 ```
 
-Replace `CUSA12345` with the game's Title ID and add the PRX or SPRX modules you want to load.
+### 🔢 Injection Modes
 
-## Building
+| Value | Mode | Description |
+|-------|------|-------------|
+| `0` | Disabled | Plugin is skipped entirely |
+| `1` | Early 🟡 | Injects while the game is still loading - use for plugins that need to be there from the start |
+| `2` | Late 🟢 | Waits for the game to be fully loaded - safer, more stable |
 
-Ploader is built using the [PS5 Payload SDK](https://github.com/ps5-payload-dev/sdk).
+> 💡 **Tip:** If you're unsure which mode to use, start with `2`. Use `1` only if the plugin needs to hook something early in the load process.
 
-You **must** use this specific SDK to compile the payload. Follow the repository's instructions to set up your build environment using WSL or native Linux.
+> 💡 **Tip:** If no `/` is in the name, ploader automatically looks in `/data/plugins/`. Full paths are also accepted.
 
-Prebuilt versions are also available in the repository's [Releases](../../releases) section.
+### 🔒 Behavior
 
-## Technical Notes
+- ploader waits up to **120 seconds** for each configured title to appear before giving up.
+- Only **one instance** of ploader can run at a time - if another is already active, the new one exits immediately.
+- Process credentials are **saved before** injection and **fully restored after**, leaving the game process clean. 🧹
 
-Ploader currently uses `ptrace` thread hijacking and kernel `ucred` manipulation. It allocates a temporary RWX page inside the game's memory space to execute a shellcode trampoline.
+---
 
-It does **not** patch the `eboot.bin` directly.
+## 🔨 Building
 
-## Future Updates
+Ploader is built using the [PS5 Payload SDK](https://github.com/ps5-payload-dev/sdk).  
+Follow the SDK instructions to set up your environment on WSL or native Linux, then:
 
-The current implementation uses a manual trigger.
+```sh
+make
+```
 
-Future work may include stability improvements and an automated injection system using `SceShell`.
+Prebuilt releases are available in the [Releases](../../releases) section.
 
-## Credits And References
+---
+
+## 🔧 Technical Notes
+
+- Uses **ptrace thread hijacking** to call `sceKernelLoadStartModule` inside the target process.
+- Temporarily sets the process `rootdir`/`jaildir` to the kernel root vnode so it can see the full filesystem, then **restores original credentials** after injection.
+- Allocates a temporary **RW page** in the target process memory for the shellcode trampoline, freed after use.
+- Does **not** patch `eboot.bin`.
+
+---
+
+## 🙏 Credits
 
 Built using the [PS5 Payload SDK](https://github.com/ps5-payload-dev/sdk).
 
-Architecture, plugin handling, and general behavior were heavily inspired by and referenced from:
+Inspired by and referenced from:
+- [GoldHEN](https://github.com/GoldHEN/GoldHEN)
+- [etaHEN](https://github.com/LightningMods/etaHEN)
+- [ps5-payload-dev/elfldr](https://github.com/ps5-payload-dev/elfldr)
 
-* [GoldHEN](https://github.com/GoldHEN/GoldHEN)
-* [GoldHEN Plugins Repository](https://github.com/GoldHEN/GoldHEN_Plugins_Repository)
-* [etaHEN](https://github.com/etaHEN/etaHEN)
-* [etaHEN Plugins](https://github.com/etaHEN/etaHEN-Plugins)
+---
 
-## Disclaimer
+## ⚠️ Disclaimer
 
-Use it at your own risk. Compatibility and stability are not guaranteed.
+Use at your own risk. Compatibility and stability are not guaranteed.  
+This project is intended for educational and homebrew purposes only.
