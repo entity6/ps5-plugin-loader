@@ -1,0 +1,29 @@
+[loader]
+timeout_s = 120
+scan_existing = true
+default_inject = true
+default_restore_sandbox = true
+
+# GTA V
+[[plugin]]
+title = "CUSA01234"
+path = "/data/plugins/my_plugin.prx"
+delay_ms = 0
+inject = true
+restore_sandbox = true
+
+# Another plugin for the same title
+[[plugin]]
+title = "CUSA01234"
+path = "/data/plugins/my_other.sprx"
+delay_ms = 5000
+inject = true
+restore_sandbox = true
+
+# Another game
+[[plugin]]
+title = "CUSA56789"
+path = "/data/plugins/example.sprx"
+delay_ms = 1000
+inject = true
+restore_sandbox = true
