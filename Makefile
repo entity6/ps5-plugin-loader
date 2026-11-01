@@ -4,14 +4,15 @@ else
     $(error PS5_PAYLOAD_SDK is undefined)
 endif
 
-ELF      := ploader.elf
-CFLAGS   += -Wall -g -O2
+ELF     := ploader.elf
+SOURCES := main.cpp
+CXXFLAGS += -std=c++17 -Wall -Wextra -O2 -g
 LDFLAGS  +=
 
 all: $(ELF)
 
-$(ELF): main.c
-	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+$(ELF): $(SOURCES)
+	$(CXX) $(CXXFLAGS) -o $@ $(SOURCES) $(LDFLAGS)
 
 clean:
 	rm -f $(ELF)
